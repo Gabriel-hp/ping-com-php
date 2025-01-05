@@ -6,7 +6,6 @@
     <title>IP Status Dashboard</title>
     <!-- Link do Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <style>
         .status-box {
             width: 150px;
@@ -32,46 +31,42 @@
 </head>
 
 <body>
-    
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Dashboard IP Status </h1>
+        <h1 class="text-center mb-4">Dashboard IP Status</h1>
         <div class="d-flex flex-wrap justify-content-center">
+            <main>
+                <form action="<?= htmlspecialchars($_SERVER['PHP_SELF']) ?>" method="get" class="mb-4">
+                    <label for="ipseacrh">Digite o IP:</label>
+                    <input type="text" name="ipseacrh" id="ipseacrh" class="form-control" placeholder="Ex: 8.8.8.8">
+                    <button type="submit" class="btn btn-primary mt-3">Verificar Status</button>
+                </form>
+            </main>
+
             <?php
-            $page = $_SERVER['PHP_SELF'];
-            $sec = "10";
-            header("Refresh: $sec; url=$page");
-            // Lista de IPs e nomes
-            $iplist = [
-                ["8.1.8.8", "teste"],
-                ["3.8.4.4", "teste DNS Backup"],
-                ["1.1.1.1", "Cloudflare DNS"],
-                ["1.0.0.1", "Cloudflare DNS Backup"],
-                ["8.1.8.8", "teste"],
-                ["8.8.4.4", "Google DNS Backup"],
-                ["1.1.1.1", "Cloudflare DNS"],
-                ["1.0.0.1", "Cloudflare DNS Backup"],
-                ["8.8.4.4", "Google DNS Backup"],
-                ["8.1.8.8", "teste"],
-            ];
+            // Obtém o IP da query string, se disponível
+            $ipAddress = $_GET['ipseacrh'] ?? null;
 
-            foreach ($iplist as $ipInfo) {
-                $ip = $ipInfo[0];
-                $name = $ipInfo[1];
-                $status = null;
+            if ($ipAddress) {
+                // Valida o formato do IP
+                if (filter_var($ipAddress, FILTER_VALIDATE_IP)) {
+                    $output = [];
+                    $status = null;
 
-                // Realiza o ping e obtém o status
-                exec("ping -n 1 $ip", $output, $status);
-                $statusClass = $status == 0 ? "status-up" : "status-down";
-                $statusText = $status == 0 ? "Up" : "Down";
+                    exec("ping -n 1 $ipAddress", $output, $status);
 
-                // Renderiza os quadrados
-                echo "
-                <div class='status-box $statusClass'>
-                    <div><strong>$name</strong></div>
-                    <div>$ip</div>
-                    <div>Status: $statusText</div>
-                </div>
-                ";
+                    $statusClass = $status === 0 ? "status-up" : "status-down";
+                    $statusText = $status === 0 ? "Online" : "Offline";
+
+                    // Renderiza o quadrado de status
+                    echo "
+                    <div class='status-box $statusClass'>
+                        <div><strong>$ipAddress</strong></div>
+                        <div>Status: $statusText</div>
+                    </div>
+                    ";
+                } else {
+                    echo "<div class='alert alert-danger'>IP inválido. Tente novamente.</div>";
+                }
             }
             ?>
         </div>
